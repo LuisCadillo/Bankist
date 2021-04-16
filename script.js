@@ -67,6 +67,14 @@ const currencies = new Map([
 
 const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
 
+//Added  UserNames
+const updateNames = accs => {
+  accs.forEach(el => {
+    el.userName = el.owner.toLowerCase().split(' ').map(name => name[0]).join('');
+})};
+updateNames(accounts);
+
+//Display movements
 const addMovements = function(movements) {
   containerMovements.innerHTML = '';
   movements.forEach((mov, i) => {
@@ -80,4 +88,42 @@ const addMovements = function(movements) {
     containerMovements.insertAdjacentHTML('afterbegin', html);
   });
 }
-addMovements(account1.movements);
+
+//Calculate balance
+const calcBalance = movements => {
+  const balance = movements.reduce((acc, mov) => acc + mov, 0);
+  labelBalance.textContent = `${balance}€`;
+}
+
+//Calculate summary
+const calcSummary = user => {
+  const summaryIn = user.movements.filter(inc => inc > 0).reduce((acc, inc) => acc + inc, 0);
+  labelSumIn.textContent = `${summaryIn}€`;
+
+  const summaryOut = user.movements.filter(out => out < 0).reduce((acc, out) => acc + out, 0);
+  labelSumOut.textContent = `${-summaryOut}€`
+
+  const summaryInt = user.movements.filter(mov => mov > 0).map(int => int * user.interestRate/100).reduce((acc, int) => acc + int)
+  labelSumInterest.textContent = `${summaryInt}€`
+}
+
+
+btnLogin.addEventListener('click', function(e) {
+  e.preventDefault();
+
+  const currentUser = accounts.find(acc => acc.userName === inputLoginUsername.value);
+  if(currentUser?.pin === Number(inputLoginPin.value)) {
+    containerApp.style.opacity = 100;
+    inputLoginUsername.value = inputLoginPin.value = '';
+    inputLoginPin.blur();
+
+    //Hello message 
+    labelWelcome.textContent = `Good evening ${currentUser.owner.split(' ')[0]}`
+    //Calculte balance
+    calcBalance(currentUser.movements);
+    //Calculate summary
+    calcSummary(currentUser)
+    //Display movements
+    addMovements(currentUser.movements);
+  }
+})
