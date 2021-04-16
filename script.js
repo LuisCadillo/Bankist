@@ -90,9 +90,9 @@ const addMovements = function(movements) {
 }
 
 //Calculate balance
-const calcBalance = movements => {
-  const balance = movements.reduce((acc, mov) => acc + mov, 0);
-  labelBalance.textContent = `${balance}€`;
+const calcBalance = acc => {
+  acc.balance = acc.movements.reduce((acc, mov) => acc + mov, 0);
+  labelBalance.textContent = `${acc.balance}€`;
 }
 
 //Calculate summary
@@ -107,23 +107,44 @@ const calcSummary = user => {
   labelSumInterest.textContent = `${summaryInt}€`
 }
 
-
+const updateUi = function(acc) {
+  calcBalance(acc);
+  //Calculate summary
+  calcSummary(acc)
+  //Display movements
+  addMovements(acc.movements);
+}
+//Login
+let currentUser;
 btnLogin.addEventListener('click', function(e) {
   e.preventDefault();
 
-  const currentUser = accounts.find(acc => acc.userName === inputLoginUsername.value);
+  currentUser = accounts.find(acc => acc.userName === inputLoginUsername.value);
   if(currentUser?.pin === Number(inputLoginPin.value)) {
-    containerApp.style.opacity = 100;
+    containerApp.style.opacity = 100; //display UI
     inputLoginUsername.value = inputLoginPin.value = '';
     inputLoginPin.blur();
 
     //Hello message 
     labelWelcome.textContent = `Good evening ${currentUser.owner.split(' ')[0]}`
     //Calculte balance
-    calcBalance(currentUser.movements);
-    //Calculate summary
-    calcSummary(currentUser)
-    //Display movements
-    addMovements(currentUser.movements);
+    updateUi(currentUser);
   }
 })
+
+//Transfer money
+btnTransfer.addEventListener('click', function(e) {
+  e.preventDefault();
+  const transferAmount = inputTransferAmount.value;
+  const recipientUser = accounts.find(acc => acc.userName === inputTransferTo.value);
+
+  if(transferAmount > 0 && recipientUser && recipientUser?.userName !== currentUser.userName && currentUser.balance >= transferAmount) {
+    recipientUser.movements.push(Number(transferAmount));
+    currentUser.movements.push(-Number(transferAmount));
+  
+    updateUi(currentUser);
+  }
+  inputTransferTo.value = inputTransferAmount.value = '';
+  inputTransferAmount.blur();
+})
+
