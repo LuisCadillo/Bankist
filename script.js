@@ -130,8 +130,7 @@ btnLogin.addEventListener('click', function(e) {
     //Calculte balance
     updateUi(currentUser);
   }
-})
-
+});
 //Transfer money
 btnTransfer.addEventListener('click', function(e) {
   e.preventDefault();
@@ -146,5 +145,28 @@ btnTransfer.addEventListener('click', function(e) {
   }
   inputTransferTo.value = inputTransferAmount.value = '';
   inputTransferAmount.blur();
+});
+
+//Money loan
+btnLoan.addEventListener('click', function(e) {
+  e.preventDefault();
+  const loanAmount = Number(inputLoanAmount.value);
+  if(loanAmount > 0 && currentUser.movements.some(mov => mov >= loanAmount * 0.1)) {
+    currentUser.movements.push(loanAmount)
+    updateUi(currentUser);
+  };
+  inputLoanAmount.value = '';
+  inputLoanAmount.blur();
 })
 
+//Close account 
+btnClose.addEventListener('click', function(e) {
+  e.preventDefault();
+  if(currentUser.userName === inputCloseUsername.value && currentUser.pin === Number(inputClosePin.value)) {
+    const index = accounts.findIndex(acc => acc.userName === inputCloseUsername.value) 
+    accounts.splice(index, 1);
+  }
+  inputCloseUsername.value = inputClosePin.value = '';
+  inputClosePin.blur();
+  containerApp.style.opacity = 0;
+});
