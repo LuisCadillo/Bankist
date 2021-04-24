@@ -111,7 +111,6 @@ const currencies = new Map([
 const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
 
 //Functions
-
 const formatMovementDate = date => {
   const restDates = (date1, date2) =>
     Math.round(Math.abs(date1 - date2) / (1000 * 60 * 60 * 24));
@@ -130,6 +129,44 @@ const currencyUser = (movements, locale, currency) => {
     style: 'currency',
     currency: currency,
   }).format(movements);
+};
+
+const startLogOutTimer = function () {
+  let time = 300;
+  const tick = function () {
+    const hour = `${Math.trunc(time / 60)}`.padStart(2, 0);
+    const minute = `${time % 60}`.padStart(2, 0);
+
+    //Show the new time in each iteration
+    labelTimer.textContent = `${hour}: ${minute}`;
+
+    //Log out the current user
+    if (time === 0) {
+      clearInterval(tick);
+      labelWelcome.textContent = 'Log in to get started';
+      containerApp.style.opacity = 0;
+    }
+
+    //Decrease second by second
+    time--;
+  };
+  tick();
+  const timer = setInterval(tick, 1000);
+  return timer;
+};
+
+//Change welcome message
+const greetings = () => {
+  const today = new Date();
+  const hours = new Map([
+    [[6, 7, 8, 9, 10, 11, 12], 'Good Morning'],
+    [[13, 14, 15, 16, 17, 18], 'Good Afternoon'],
+    [[19, 20, 21, 22], 'Good Evening'],
+    [[23, 0, 1, 2, 3, 4, 5], 'Good Night'],
+  ]);
+  const arr = [...hours.keys()].find(key => key.includes(today.getHours()));
+  const greet = hours.get(arr);
+  return greet;
 };
 
 //Add  UserNames
@@ -212,10 +249,9 @@ const updateUi = function (acc) {
   addMovements(acc);
 };
 //Login
-let currentUser;
+let currentUser, timer;
 btnLogin.addEventListener('click', function (e) {
   e.preventDefault();
-
   currentUser = accounts.find(acc => acc.userName === inputLoginUsername.value);
   if (currentUser?.pin === +inputLoginPin.value) {
     containerApp.style.opacity = 100; //display UI
@@ -223,7 +259,7 @@ btnLogin.addEventListener('click', function (e) {
     inputLoginPin.blur();
 
     //Hello message
-    labelWelcome.textContent = `Good evening ${
+    labelWelcome.textContent = `${greetings()} ${
       currentUser.owner.split(' ')[0]
     }`;
     const date = new Date();
@@ -235,6 +271,11 @@ btnLogin.addEventListener('click', function (e) {
       year: 'numeric',
     }).format(date);
     labelDate.textContent = formatTime;
+
+    //Start/restart timer
+    if (timer) clearInterval(timer);
+    timer = startLogOutTimer(); //store the returned value
+
     //Calculte balance
     updateUi(currentUser);
   }
@@ -262,6 +303,10 @@ btnTransfer.addEventListener('click', function (e) {
   }
   inputTransferTo.value = inputTransferAmount.value = '';
   inputTransferAmount.blur();
+
+  //Start/restart timer
+  clearInterval(timer);
+  timer = startLogOutTimer();
 });
 
 //Money loan
@@ -280,6 +325,10 @@ btnLoan.addEventListener('click', function (e) {
   }
   inputLoanAmount.value = '';
   inputLoanAmount.blur();
+
+  //Start/restart timer
+  clearInterval(timer);
+  timer = startLogOutTimer();
 });
 
 //Close account
